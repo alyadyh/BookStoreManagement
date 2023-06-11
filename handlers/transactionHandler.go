@@ -10,7 +10,12 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func AddTransactionHandler(w http.ResponseWriter, r *http.Request) {
+func AddTransaction(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	err := r.ParseForm()
 	if err != nil {
 		log.Println("Failed to parse form data:", err)
@@ -139,4 +144,84 @@ func AddTransactionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprintln(w, "Transaction added successfully!")
+}
+
+func DeleteTransaction(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Parse the form data
+	err := r.ParseForm()
+	if err != nil {
+		log.Println("Failed to parse form data:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Get the cart ID from the form data
+	cartID := r.Form.Get("cartID")
+
+	db, err := sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/books_store")
+	if err != nil {
+		log.Println("Failed to connect to the database:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	// Start a transaction to ensure atomicity
+	tx, err := db.Begin()
+	if err != nil {
+		log.Println("Failed to start transaction:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Delete the cart from the database
+	stmtDeleteCart, err := tx.Prepare("DELETE FROM cart WHERE cart_id = ?")
+	if err != nil {
+		log.Println("Failed to prepare SQL statement for deleting cart:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		_ = tx.Rollback()
+		return
+	}
+	defer stmtDeleteCart.Close()
+
+	_, err = stmtDeleteCart.Exec(cartID)
+	if err != nil {
+		log.Println("Failed to execute SQL statement for deleting cart:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		_ = tx.Rollback()
+		return
+	}
+
+	// Delete the associated transaction from the database
+	stmtDeleteTransaction, err := tx.Prepare("DELETE FROM transactions WHERE cart_id = ?")
+	if err != nil {
+		log.Println("Failed to prepare SQL statement for deleting transaction:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		_ = tx.Rollback()
+		return
+	}
+	defer stmtDeleteTransaction.Close()
+
+	_, err = stmtDeleteTransaction.Exec(cartID)
+	if err != nil {
+		log.Println("Failed to execute SQL statement for deleting transaction:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		_ = tx.Rollback()
+		return
+	}
+
+	// Commit the transaction
+	err = tx.Commit()
+	if err != nil {
+		log.Println("Failed to commit transaction:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Fprintln(w, "Transaction deleted successfully!")
 }

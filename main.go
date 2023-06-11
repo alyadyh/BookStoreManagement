@@ -9,10 +9,13 @@ import (
 )
 
 func main() {
-	http.HandleFunc("/addbook", handlers.AddBookHandler)
-	http.HandleFunc("/deletebook", handlers.DeleteBookHandler)
-	http.HandleFunc("/addstaff", handlers.AddStaffHandler)
-	http.HandleFunc("/addtransaction", handlers.AddTransactionHandler)
+	http.HandleFunc("/addbook", handlers.AddBook)
+	http.HandleFunc("/deletebook", handlers.DeleteBook)
+	http.HandleFunc("/addstaff", handlers.AddStaff)
+	http.HandleFunc("/deletestaff", handlers.DeleteStaff)
+	http.HandleFunc("/addtransaction", handlers.AddTransaction)
+	http.HandleFunc("/deletetransaction", handlers.DeleteTransaction)
+
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	log.Fatal(http.ListenAndServe(":8080", nil))

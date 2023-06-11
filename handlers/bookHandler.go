@@ -12,7 +12,12 @@ import (
 
 var generateUniqueID = generates.GenerateUniqueID
 
-func AddBookHandler(w http.ResponseWriter, r *http.Request) {
+func AddBook(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	err := r.ParseForm()
 	if err != nil {
 		log.Println("Failed to parse form data:", err)
@@ -91,7 +96,12 @@ func AddBookHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Book added successfully!")
 }
 
-func DeleteBookHandler(w http.ResponseWriter, r *http.Request) {
+func DeleteBook(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	err := r.ParseForm()
 	if err != nil {
 		log.Println("Failed to parse form data:", err)
