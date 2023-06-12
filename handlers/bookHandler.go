@@ -1,23 +1,23 @@
-package main
+package handlers
 
 import (
 	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
+	"github.com/book-crud/generates"
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func main() {
-	http.HandleFunc("/addbook", addBookHandler)
-	http.HandleFunc("/deletebook", deleteBookHandler)
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	log.Fatal(http.ListenAndServe(":8080", nil))
-}
+var generateUniqueID = generates.GenerateUniqueID
 
-func addBookHandler(w http.ResponseWriter, r *http.Request) {
+func AddBook(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	err := r.ParseForm()
 	if err != nil {
 		log.Println("Failed to parse form data:", err)
@@ -96,7 +96,12 @@ func addBookHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Book added successfully!")
 }
 
-func deleteBookHandler(w http.ResponseWriter, r *http.Request) {
+func DeleteBook(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	err := r.ParseForm()
 	if err != nil {
 		log.Println("Failed to parse form data:", err)
@@ -130,12 +135,4 @@ func deleteBookHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprintln(w, "Book deleted successfully!")
-}
-
-func generateUniqueID(input string) string {
-	id := ""
-	for _, c := range input {
-		id += strconv.Itoa(int(c))
-	}
-	return id
 }
