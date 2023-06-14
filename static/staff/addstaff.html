@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Staff Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding-bottom: 40px;
+        }
+
+        h2 {
+            color: #333;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        form {
+            max-width: 400px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="email"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        .back-button {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: #333;
+            color: #fff;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h2>Staff Management</h2>
+
+    <form id="addStaffForm">
+        <label for="staffName">Staff Name:</label>
+        <input type="text" id="staffName" name="staffName" required>
+        <label for="staffEmail">Staff Email:</label>
+        <input type="email" id="staffEmail" name="staffEmail" required>
+        <input type="submit" value="Add Staff">
+    </form>
+
+    <button class="back-button" onclick="goBack()">Back</button>
+
+    <script>
+        document.getElementById("addStaffForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            // Get form data
+            var form = event.target;
+            var formData = new FormData(form);
+
+            // Send a POST request to the server to add the staff
+            fetch("/staff/add", {
+                method: "POST",
+                body: formData
+            })
+            .then(function(response) {
+                if (response.ok) {
+                    // Staff added successfully
+                    alert("Staff added successfully!");
+                    form.reset(); // Reset the form
+                } else {
+                    // Error occurred while adding the staff
+                    alert("Failed to add the staff. Please try again later.");
+                }
+            })
+            .catch(function(error) {
+                // Error occurred during the request
+                console.error("Error:", error);
+                alert("An error occurred. Please try again later.");
+            });
+        });
+
+        function goBack() {
+            window.history.back("../staff.html"); // Go back to the previous page
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Book Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .menu-container {
+            max-width: 400px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-container h2 {
+            margin-top: 0;
+        }
+
+        .menu-container button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .menu-container button:hover {
+            background-color: #45a049;
+        }
+
+        .back-button {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Staff Management System</h1>
+    <div class="menu-container">
+        <h2>Options</h2>
+        <button onclick="location.href='staff/addstaff.html'">Add Staff</button>
+        <button onclick="location.href='staff/deletestaff.html'">Delete Staff</button>
+        <button onclick="location.href='staff/editstaff.html'">Edit Staff</button>
+    </div>
+
+    <div class="back-button">
+        <button onclick="goBack()">Back</button>
+    </div>
+
+    <script>
+        function goBack() {
+            window.location.href = "menu.html"; // Go back to the menu page
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Book</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        h2 {
+            color: #333;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        form {
+            max-width: 400px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        .back-button {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .back-button a {
+            display: inline-block;
+            padding: 5px 10px;
+            background-color: #ccc;
+            color: #333;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .back-button a:hover {
+            background-color: #999;
+        }
+    </style>
+</head>
+<body>
+    <h2>Edit Book</h2>
+    <form id="editBookForm">
+        <label for="bookTitle">Book Title:</label>
+        <select id="bookTitle" name="bookTitle" required>
+            <option value="" disabled selected>Select a book title</option>
+        </select>
+        <label for="newTitle">New Title:</label>
+        <input type="text" id="newTitle" name="newTitle" required>
+        <label for="author">Author:</label>
+        <input type="text" id="author" name="author" required>
+        <label for="publisher">Publisher:</label>
+        <input type="text" id="publisher" name="publisher" required>
+        <label for="publicationDate">Publication Date:</label>
+        <input type="date" id="publicationDate" name="publicationDate" required>
+        <label for="isbn">ISBN:</label>
+        <input type="text" id="isbn" name="isbn" required>
+        <label for="price">Price:</label>
+        <input type="number" id="price" name="price" required>
+        <label for="stockQuantity">Stock Quantity:</label>
+        <input type="number" id="stockQuantity" name="stockQuantity" required>
+        <input type="submit" value="Update Book">
+    </form>
+
+    <div class="back-button">
+        <a href="../books.html">Back to Books</a>
+    </div>
+
+    <script>
+        // Fetch the book titles from the server and populate the dropdown
+        fetch("/getbooktitles")
+            .then(function(response) {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error("Failed to fetch book titles.");
+                }
+            })
+            .then(function(data) {
+                var selectElement = document.getElementById("bookTitle");
+
+                // Create an option for each book title
+                data.forEach(function(title) {
+                    var option = document.createElement("option");
+                    option.value = title;
+                    option.textContent = title;
+                    selectElement.appendChild(option);
+                });
+            })
+            .catch(function(error) {
+                console.error("Error:", error);
+                alert("An error occurred while fetching book titles.");
+            });
+
+        document.getElementById("editBookForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            // Get form data
+            var form = event.target;
+            var formData = new FormData(form);
+
+            // Send a POST request to the server to update the book
+            fetch("/updatebook", {
+                method: "POST",
+                body: formData
+            })
+            .then(function(response) {
+                if (response.ok) {
+                    // Book updated successfully
+                    alert("Book updated successfully!");
+                    form.reset(); // Reset the form
+                } else {
+                    // Error occurred while updating the book
+                    alert("Failed to update the book. Please try again later.");
+                }
+            })
+            .catch(function(error) {
+                console.error("Error:", error);
+                alert("An error occurred. Please try again later.");
+            });
+        });
+    </script>
+</body>
+</html>
