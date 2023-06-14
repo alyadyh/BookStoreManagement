@@ -10,14 +10,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var generateUniqueID = generates.GenerateUniqueID
-
 func AddBook(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	err := r.ParseForm()
 	if err != nil {
 		log.Println("Failed to parse form data:", err)
@@ -25,17 +18,33 @@ func AddBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if r.Method != "POST" {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	bookTitle := r.Form.Get("bookTitle")
-	authorName := r.Form.Get("bookAuthor")
-	publisherName := r.Form.Get("bookPublisher")
+	authorName := r.Form.Get("authorName")
+	publisherName := r.Form.Get("publisherName")
 	publicationDate := r.Form.Get("publicationDate")
-	ISBN := r.Form.Get("isbn")
-	price := r.Form.Get("price")
-	stockQty := r.Form.Get("stockQuantity")
+	ISBN := r.Form.Get("ISBN")
+	priceStr := r.Form.Get("price")
+	stockQtyStr := r.Form.Get("stockQty")
+	genreName := r.Form.Get("genreName")
 
 	bookID := generateUniqueID(bookTitle)
 	authorID := generateUniqueID(authorName)
 	publisherID := generateUniqueID(publisherName)
+	genreID := generateUniqueID(genreName)
+
+	log.Println("bookTitle:", bookTitle)
+	log.Println("authorName:", authorName)
+	log.Println("publisherName:", publisherName)
+	log.Println("publicationDate:", publicationDate)
+	log.Println("ISBN:", ISBN)
+	log.Println("price:", priceStr)
+	log.Println("stockQty:", stockQtyStr)
+	log.Println("genreName:", genreName)
 
 	db, err := sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/books_store")
 	if err != nil {
@@ -77,8 +86,39 @@ func AddBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Insert into genres table
+	genreStmt, err := db.Prepare("INSERT INTO genres (genre_id, genre_name) VALUES (?, ?)")
+	if err != nil {
+		log.Println("Failed to prepare SQL statement for inserting into genres table:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	defer genreStmt.Close()
+
+	_, err = genreStmt.Exec(genreID, genreName)
+	if err != nil {
+		log.Println("Failed to execute SQL statement for inserting into genres table:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Convert price and stockQty to float64 and int types respectively
+	price, err := strconv.ParseFloat(priceStr, 64)
+	if err != nil {
+		log.Println("Failed to parse price value:", err)
+		http.Error(w, "Invalid price value", http.StatusBadRequest)
+		return
+	}
+
+	stockQty, err := strconv.Atoi(stockQtyStr)
+	if err != nil {
+		log.Println("Failed to parse stock quantity value:", err)
+		http.Error(w, "Invalid stock quantity value", http.StatusBadRequest)
+		return
+	}
+
 	// Insert into books table
-	bookStmt, err := db.Prepare("INSERT INTO books (book_id, title, author_id, publisher_id, publication_date, ISBN, price, stock_qty) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+	bookStmt, err := db.Prepare("INSERT INTO books (book_id, title, author_id, publisher_id, publication_date, ISBN, price, stock_qty, genre_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		log.Println("Failed to prepare SQL statement for inserting into books table:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -86,7 +126,7 @@ func AddBook(w http.ResponseWriter, r *http.Request) {
 	}
 	defer bookStmt.Close()
 
-	_, err = bookStmt.Exec(bookID, bookTitle, authorID, publisherID, publicationDate, ISBN, price, stockQty)
+	_, err = bookStmt.Exec(bookID, bookTitle, authorID, publisherID, publicationDate, ISBN, price, stockQty, genreID)
 	if err != nil {
 		log.Println("Failed to execute SQL statement for inserting into books table:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -94,6 +134,21 @@ func AddBook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprintln(w, "Book added successfully!")
+}
+
+// Helper function to generate a unique ID based on the ASCII values of the provided string
+func generateUniqueID(str string) string {
+	// Convert the book title to lowercase and remove spaces
+	title := strings.ToLower(strings.ReplaceAll(str, " ", ""))
+
+	// Calculate the sum of ASCII values of each character in the title
+	sum := 0
+	for _, ch := range title {
+		sum += int(ch)
+	}
+
+	// Generate the unique ID using the sum of ASCII values
+	return fmt.Sprintf("ID_%d", sum)
 }
 
 func DeleteBook(w http.ResponseWriter, r *http.Request) {
